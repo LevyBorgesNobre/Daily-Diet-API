@@ -1,7 +1,7 @@
 Regras da aplicação
 
 [] - Deve ser possível identificar o usuário entre as requisições
-[] - Deve ser possível registrar uma refeição feita, com as seguintes informações: 
+[x] - Deve ser possível registrar uma refeição feita, com as seguintes informações: 
 * Nome
 * Descrição
 * Data e Hora

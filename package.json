@@ -2,9 +2,11 @@
   "name": "daily-diet-api",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-     "knex": "node --import tsx ./node_modules/knex/bin/cli.js"
+    "knex": "node --import tsx ./node_modules/knex/bin/cli.js",
+    "migrate": "tsx ./node_modules/knex/bin/cli.js migrate:latest --knexfile ./knexfile.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,8 +20,9 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@types/node": "^24.6.1",
+    "@types/node": "^24.6.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

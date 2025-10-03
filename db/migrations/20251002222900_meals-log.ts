@@ -5,10 +5,9 @@ export async function up(knex: Knex): Promise<void> {
      table.uuid('id').primary()
      table.text('name').notNullable()
      table.text('description').notNullable()
+     table.enum('type',['inDiet', 'outDiet']).notNullable()
      table.timestamp('created-at').defaultTo(knex.fn.now()).notNullable()
-     
     })
-
 }
 
 
