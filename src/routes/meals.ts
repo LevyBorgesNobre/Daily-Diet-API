@@ -3,12 +3,20 @@ import { z } from "zod"
 import { knexSetup } from "database";
 import { randomUUID } from "node:crypto";
 import { get } from "node:http";
+import { checkSessionIdExists } from "middleware/check-session-id-exists";
 
 export async function mealsRoutes(app : FastifyInstance){
 
-   app.get('/', async()=>{
-      const meals = await knexSetup('meals').select('*')
+   app.get('/', {
+      preHandler: [checkSessionIdExists]
+   }, async(req)=>{
+      
+      const sessionId = req.cookies.sessionId
 
+      const meals = await knexSetup('meals')
+      .where('session_id', sessionId)
+      .select()
+ 
       return{
          meals
       }
@@ -19,10 +27,12 @@ export async function mealsRoutes(app : FastifyInstance){
       const deleteMealParamsSchema = z.object({
          id:z.string().uuid()
      })
-
+    
      const { id } = deleteMealParamsSchema.parse(req.params)
+      
+    const sessionId = req.cookies.sessionId
 
-    const deleteMeal = await knexSetup('meals').where('id', id).delete()
+    const deleteMeal = await knexSetup('meals').where(id, sessionId).delete()
 
     if(deleteMeal){
       reply.status(200).send({message: 'Meal deleted successfully'})
@@ -43,11 +53,16 @@ export async function mealsRoutes(app : FastifyInstance){
       })
       
       const { id } = getMealParamsSchema.parse(req.params)
+     
+      const sessionId = req.cookies.sessionId
 
-      const meal = await knexSetup('meals').where('id', id).first()
+      const meal = await knexSetup('meals').where({
+         session_id: sessionId,
+         id, 
+      }).first()
       
       if(meal){
-         reply.status(200).send({message: 'meal found successfull'})
+         return meal
       } else {
          reply.status(404).send({message: 'meal not found'})
       }
@@ -66,11 +81,22 @@ export async function mealsRoutes(app : FastifyInstance){
 
        const {name, description, type} = createMealsBodySchema.parse(req.body)
        
+        let sessionId = req.cookies.sessionId
+   
+       if(!sessionId){
+       sessionId = crypto.randomUUID()
+       reply.cookie('sessionId', sessionId, {
+       path:'/',
+       maxAge: 60 * 60 * 24 * 7 //7 days
+      })
+      }
+      
        await knexSetup('meals').insert({
         id:randomUUID(),
         name,
         description,
-        type
+        type,
+        session_id : sessionId
        })
 
        return reply.status(201).send({message: 'Meal created successfully'})
