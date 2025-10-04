@@ -4,6 +4,16 @@ import { knexSetup } from "database";
 import { randomUUID } from "node:crypto";
 
 export async function mealsRoutes(app : FastifyInstance){
+
+   app.get('/', async()=>{
+      const meals = await knexSetup('meals').select('*')
+
+      return{
+         meals
+      }
+   })
+
+
     app.post('/', async(req, reply)=>{
      const createMealsBodySchema = z.object({
         name:z.string().max(30, {message: 'Name must be at most 30 characters long'}),
