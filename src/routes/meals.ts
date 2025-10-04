@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod"
 import { knexSetup } from "database";
 import { randomUUID } from "node:crypto";
+import { get } from "node:http";
 
 export async function mealsRoutes(app : FastifyInstance){
 
@@ -12,7 +13,49 @@ export async function mealsRoutes(app : FastifyInstance){
          meals
       }
    })
+   
+  app.get('/delete/:id', async(req, reply)=>{
+   try {
+      const deleteMealParamsSchema = z.object({
+         id:z.string().uuid()
+     })
 
+     const { id } = deleteMealParamsSchema.parse(req.params)
+
+    const deleteMeal = await knexSetup('meals').where('id', id).delete()
+
+    if(deleteMeal){
+      reply.status(200).send({message: 'Meal deleted successfully'})
+    } else {
+      reply.status(404).send({message: 'Meal not found'})
+    }
+   } catch (error) {
+      reply.status(500).send({message: 'Internal server error'})
+   }
+     
+  })
+
+   app.get('/:id', async(req, reply)=>{
+      
+      try {
+          const getMealParamsSchema = z.object({
+         id: z.string().uuid()
+      })
+      
+      const { id } = getMealParamsSchema.parse(req.params)
+
+      const meal = await knexSetup('meals').where('id', id).first()
+      
+      if(meal){
+         reply.status(200).send({message: 'meal found successfull'})
+      } else {
+         reply.status(404).send({message: 'meal not found'})
+      }
+      } catch (error) {
+         reply.status(500).send({message: 'Internal server error'})
+      }
+     
+   })
 
     app.post('/', async(req, reply)=>{
      const createMealsBodySchema = z.object({
