@@ -72,6 +72,29 @@ export async function mealsRoutes(app : FastifyInstance){
      
    })
 
+   app.get('/in-diet/count',{
+      preHandler: [checkSessionIdExists]
+   },  async(req)=>{
+       const sessionId = req.cookies.sessionId
+
+       const result =  await knexSetup('meals')
+        .where('session_id', sessionId)
+        .select(knexSetup.raw(`SUM(CASE WHEN type = 'inDiet' THEN 1 ELSE 0 END) AS inDiet  `));
+
+         return result
+   })
+
+   app.get('/out-diet/count', async(req)=>{
+     const sessionId = req.cookies.sessionId
+
+    const result =  await knexSetup('meals')
+     .where('session_id', sessionId)
+     .select(knexSetup.raw(` SUM(CASE WHEN type = 'outDiet' THEN 1 ELSE 0 END) AS outDiet `));
+
+         return result 
+   } )
+
+
     app.post('/', async(req, reply)=>{
      const createMealsBodySchema = z.object({
         name:z.string().max(30, {message: 'Name must be at most 30 characters long'}),
