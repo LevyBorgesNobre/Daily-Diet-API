@@ -95,7 +95,9 @@ export async function mealsRoutes(app : FastifyInstance){
    } )
 
 
-   app.get('/total-diet/count', async(req)=>{
+   app.get('/total-diet/count',{
+      preHandler: [checkSessionIdExists]
+   } ,async(req)=>{
       const sessionId = req.cookies.sessionId
 
      const result = await knexSetup('meals')
@@ -103,6 +105,45 @@ export async function mealsRoutes(app : FastifyInstance){
       .select(knexSetup.raw(`SUM(CASE WHEN type IN ('outDiet', 'inDiet') THEN 1 ELSE 0 END) AS totalDiet`))
 
       return result
+   })
+
+    app.put('/edit-meal/:id', async(req, reply)=>{
+      try {
+         const getIdToEditMealSchema = z.object({
+            id: z.string().uuid()
+         })
+
+         const { id } = getIdToEditMealSchema.parse(req.params)
+         
+         const sessionId = req.cookies.sessionId
+
+         const editMealSchema = z.object({
+        name:z.string().max(30, {message: 'Name must be at most 30 characters long'}).optional(),
+        description: z.string().max(300, {message: 'Description must be at most 300 characters long'}).optional(),
+        type:z.enum(['inDiet', 'outDiet'],{message:'the options must be inDiet or outDiet'}).optional()
+      })
+
+      const { name, description, type} = editMealSchema.parse(req.body)
+
+      const result = await knexSetup('meals')
+          .where({
+            session_id:sessionId,
+            id
+          })
+          .update({
+            name: name,
+            description: description,
+            type: type
+         })
+         
+         if(result){
+            return reply.status(200).send({message: 'meal edited successfuly'})
+         } else {
+            reply.status(404)
+         }
+      } catch (error) {
+            reply.status(500).send({message: `${error}`})
+      }
    })
 
     app.post('/', async(req, reply)=>{
