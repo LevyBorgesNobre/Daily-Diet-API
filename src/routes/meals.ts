@@ -95,6 +95,16 @@ export async function mealsRoutes(app : FastifyInstance){
    } )
 
 
+   app.get('/total-diet/count', async(req)=>{
+      const sessionId = req.cookies.sessionId
+
+     const result = await knexSetup('meals')
+      .where('session_id', sessionId)
+      .select(knexSetup.raw(`SUM(CASE WHEN type IN ('outDiet', 'inDiet') THEN 1 ELSE 0 END) AS totalDiet`))
+
+      return result
+   })
+
     app.post('/', async(req, reply)=>{
      const createMealsBodySchema = z.object({
         name:z.string().max(30, {message: 'Name must be at most 30 characters long'}),
