@@ -32,7 +32,10 @@ export async function mealsRoutes(app : FastifyInstance){
       
     const sessionId = req.cookies.sessionId
 
-    const deleteMeal = await knexSetup('meals').where(id, sessionId).delete()
+    const deleteMeal = await knexSetup('meals').where({
+      id: id,
+      session_id: sessionId
+    }).delete()
 
     if(deleteMeal){
       reply.status(200).send({message: 'Meal deleted successfully'})
@@ -40,7 +43,7 @@ export async function mealsRoutes(app : FastifyInstance){
       reply.status(404).send({message: 'Meal not found'})
     }
    } catch (error) {
-      reply.status(500).send({message: 'Internal server error'})
+      reply.status(500).send({message: `error ${error}`})
    }
      
   })
