@@ -109,6 +109,7 @@ export async function mealsRoutes(app : FastifyInstance){
 
       return result
    })
+   
 
     app.put('/edit-meal/:id', async(req, reply)=>{
       try {
@@ -148,7 +149,23 @@ export async function mealsRoutes(app : FastifyInstance){
             reply.status(500).send({message: `${error}`})
       }
    })
-
+   
+   app.get('/percentage-of-meals-in-diet', async(req)=>{
+      const sessionId = req.cookies.sessionId
+       
+     const result = await knexSetup('meals')
+     .where('session_id', sessionId)
+     .select(
+     knexSetup.raw(`(
+       SUM(CASE WHEN type = 'inDiet' THEN 1 ELSE 0 END) * 100.0 /
+      (SUM(CASE WHEN type = 'inDiet' THEN 1 ELSE 0 END) + SUM(CASE WHEN type = 'outDiet' THEN 1 ELSE 0 END))
+      ) AS inDietPercentage`)
+     );
+        
+      return result
+   })
+     
+   
     app.post('/', async(req, reply)=>{
      const createMealsBodySchema = z.object({
         name:z.string().max(30, {message: 'Name must be at most 30 characters long'}),
