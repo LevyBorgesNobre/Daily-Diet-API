@@ -22,7 +22,7 @@ export async function mealsRoutes(app : FastifyInstance){
       }
    })
    
-  app.get('/delete/:id', async(req, reply)=>{
+  app.delete('/delete/:id', async(req, reply)=>{
    try {
       const deleteMealParamsSchema = z.object({
          id:z.string().uuid()
