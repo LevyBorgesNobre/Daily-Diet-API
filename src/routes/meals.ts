@@ -150,7 +150,9 @@ export async function mealsRoutes(app : FastifyInstance){
       }
    })
    
-   app.get('/percentage-of-meals-in-diet', async(req)=>{
+   app.get('/percentage-of-meals-in-diet',{
+      preHandler: [checkSessionIdExists]
+   }, async(req)=>{
       const sessionId = req.cookies.sessionId
        
      const result = await knexSetup('meals')
